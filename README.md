@@ -2,9 +2,20 @@
 
 > 一站式系统学习「腾讯云智能体开发平台 (Tencent Cloud Agent Development Platform)」的 140 个核心知识点。
 
+[![Vercel](https://img.shields.io/badge/Vercel-online-000000)](https://learn-tencent-adp.vercel.app/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-online-181717)](http://d.wentiertong.com/learn-tencent-adp/)
 [![PWA](https://img.shields.io/badge/PWA-ready-FBBF24)](#)
-[![Stack](https://img.shields.io/badge/stack-vanilla%20js-171717)](#)
 [![No build](https://img.shields.io/badge/build-not%20required-525252)](#)
+
+🌐 **在线访问**
+
+| 平台 | URL |
+|---|---|
+| Vercel | https://learn-tencent-adp.vercel.app/ |
+| GitHub Pages | http://d.wentiertong.com/learn-tencent-adp/ |
+| 源码 | https://github.com/dimayip/learn-tencent-adp |
+
+---
 
 面向云计算从业者、AI 应用开发者与架构师，把抽象的"大模型 + 智能体 + RAG"知识体系拆成可遍历、可测验、可追踪的结构化学习路径。
 
