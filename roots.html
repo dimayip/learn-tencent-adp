@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识点索引 — Tencent Cloud ADP 学习工坊</title>
+  <meta name="description" content="腾讯云智能体开发平台 140 个知识点完整索引，支持搜索和分类筛选。">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#FBBF24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/minimal.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">
+        <span class="nav-brand-emoji">🤖</span>
+        <span>Tencent Cloud ADP 学习工坊</span>
+      </a>
+      <div class="nav-links">
+        <a href="learn.html" class="nav-link">学习</a>
+        <a href="flashcard.html" class="nav-link">闪卡</a>
+        <a href="roots.html" class="nav-link active">索引</a>
+        <a href="progress.html" class="nav-link">进度</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <h1>知识点索引</h1>
+      <p>140 个知识点，<span id="masteredCount">0</span> 个已掌握</p>
+    </div>
+
+    <div class="roots-toolbar">
+      <input type="text" class="search-box" id="searchInput" placeholder="搜索知识点…" oninput="onSearch()">
+      <select class="filter-select" id="filterSelect" onchange="onFilter()">
+        <option value="all">全部分类</option>
+      </select>
+    </div>
+
+    <div class="roots-grid" id="rootsGrid"></div>
+  </main>
+
+  <script src="js/wordData.js"></script>
+  <script src="js/storage.js"></script>
+  <script>
+    function getOrigins() {
+      const set = new Set();
+      WordRoots.forEach(r => set.add(r.origin));
+      return Array.from(set);
+    }
+
+    function buildFilter() {
+      const sel = document.getElementById('filterSelect');
+      getOrigins().forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        sel.appendChild(opt);
+      });
+    }
+
+    function createRootCard(root, mastered) {
+      const card = document.createElement('div');
+      card.className = 'root-card' + (mastered ? ' mastered' : '');
+      card.onclick = () => { window.location.href = 'root-detail.html?id=' + root.id; };
+
+      const name = document.createElement('div');
+      name.className = 'root-name';
+      name.textContent = root.root;
+
+      const meaning = document.createElement('div');
+      meaning.className = 'root-meaning';
+      meaning.textContent = root.meaning;
+
+      const origin = document.createElement('span');
+      origin.className = 'root-origin';
+      origin.textContent = root.origin;
+
+      card.appendChild(name);
+      card.appendChild(meaning);
+      card.appendChild(origin);
+
+      if (mastered) {
+        const badge = document.createElement('span');
+        badge.className = 'mastered-badge';
+        badge.textContent = '✓ 已掌握';
+        card.appendChild(badge);
+      }
+      return card;
+    }
+
+    function renderRoots(items) {
+      const container = document.getElementById('rootsGrid');
+      container.innerHTML = '';
+      const masteredIds = new Set(loadMasteredItems());
+      if (items.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-hint';
+        empty.style.gridColumn = '1 / -1';
+        empty.textContent = '没有匹配的知识点';
+        container.appendChild(empty);
+        return;
+      }
+      items.forEach(r => container.appendChild(createRootCard(r, masteredIds.has(r.id))));
+    }
+
+    function applyFilters() {
+      const q = document.getElementById('searchInput').value.trim().toLowerCase();
+      const origin = document.getElementById('filterSelect').value;
+      let items = WordRoots;
+      if (origin !== 'all') items = items.filter(r => r.origin === origin);
+      if (q) {
+        items = items.filter(r =>
+          r.root.toLowerCase().includes(q) ||
+          r.meaning.toLowerCase().includes(q) ||
+          (r.description || '').toLowerCase().includes(q)
+        );
+      }
+      renderRoots(items);
+    }
+
+    function onSearch() { applyFilters(); }
+    function onFilter() { applyFilters(); }
+
+    buildFilter();
+    document.getElementById('masteredCount').textContent = getMasteredCount();
+    renderRoots(WordRoots);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

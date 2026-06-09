@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tencent Cloud ADP 学习工坊 — 腾讯云智能体开发平台 140 个核心知识点</title>
+
+  <meta name="description" content="面向云计算从业者的 Tencent Cloud ADP 学习工坊。从应用模式、知识库、Workflow，到 Multi-Agent、Widget、API 集成，140 个核心知识点带你完整掌握腾讯云智能体开发平台。">
+  <meta name="keywords" content="腾讯云智能体开发平台,Tencent Cloud ADP,LKE,大模型知识引擎,RAG,Multi-Agent,Workflow,智能体">
+  <meta name="author" content="ADP 学习工坊">
+  <meta name="language" content="zh-CN">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:title" content="Tencent Cloud ADP 学习工坊">
+  <meta property="og:description" content="腾讯云智能体开发平台 140 个核心知识点学习网站">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_CN">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Tencent Cloud ADP 学习工坊">
+  <meta name="twitter:description" content="腾讯云智能体开发平台 140 个核心知识点学习网站">
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#FBBF24">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ADP 学习">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/minimal.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">
+        <span class="nav-brand-emoji">🤖</span>
+        <span>Tencent Cloud ADP 学习工坊</span>
+      </a>
+      <div class="nav-links">
+        <a href="learn.html" class="nav-link">学习</a>
+        <a href="flashcard.html" class="nav-link">闪卡</a>
+        <a href="roots.html" class="nav-link">索引</a>
+        <a href="progress.html" class="nav-link">进度</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <h1 class="hero-title">
+        <span id="heroTitle1">140 个核心知识点</span><br>
+        <span id="heroTitle2">系统掌握腾讯云</span><br>
+        <span id="heroTitle3" class="accent">智能体开发平台</span>
+      </h1>
+      <p class="hero-subtitle" id="heroSubtitle">从产品定位到 RAG、Multi-Agent、Workflow，一站式构建企业级 AI 应用</p>
+      <div class="hero-cta">
+        <a href="learn.html" class="btn btn-primary btn-large" id="ctaPrimary">开始学习第一个知识点 →</a>
+        <a href="flashcard.html" class="btn btn-secondary btn-large" id="ctaSecondary">闪卡复习</a>
+      </div>
+
+      <div class="demo-card" id="demoCard">
+        <div class="demo-word" id="demoWord">—</div>
+        <div class="demo-meaning" id="demoMeaning">正在加载示例…</div>
+        <div class="demo-origin" id="demoOrigin">—</div>
+      </div>
+    </section>
+
+    <section class="stat-grid container-wide" id="statGrid"></section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-tagline" id="footerTagline">把大模型，变成可控可运营的生产力</div>
+      <p class="footer-description" id="footerDescription">面向云计算从业者的 Tencent Cloud ADP 学习工坊。</p>
+      <p class="footer-meta">资料来源：<a href="https://cloud.tencent.com/document/product/1759" target="_blank" rel="noopener" style="color: var(--color-accent-dark); text-decoration: underline;">腾讯云智能体开发平台官方文档</a></p>
+    </div>
+  </footer>
+
+  <script src="js/wordData.js"></script>
+  <script src="js/siteConfig.js"></script>
+  <script src="js/storage.js"></script>
+  <script>
+    // 应用 siteConfig
+    (function applyConfig(){
+      if (typeof siteConfig === 'undefined') return;
+      const t = siteConfig.hero && siteConfig.hero.title;
+      if (t && t.length === 3) {
+        document.getElementById('heroTitle1').textContent = t[0];
+        document.getElementById('heroTitle2').textContent = t[1];
+        document.getElementById('heroTitle3').textContent = t[2];
+      }
+      if (siteConfig.hero && siteConfig.hero.subtitle) {
+        document.getElementById('heroSubtitle').textContent = siteConfig.hero.subtitle;
+      }
+      if (siteConfig.cta) {
+        const a = document.getElementById('ctaPrimary');
+        const b = document.getElementById('ctaSecondary');
+        if (a) a.textContent = siteConfig.cta.primary;
+        if (b) b.textContent = siteConfig.cta.secondary;
+      }
+      if (siteConfig.footer) {
+        document.getElementById('footerTagline').textContent = siteConfig.footer.tagline;
+        document.getElementById('footerDescription').textContent = siteConfig.footer.description;
+      }
+      // 渲染 stats
+      const statGrid = document.getElementById('statGrid');
+      if (statGrid && siteConfig.stats && Array.isArray(siteConfig.stats)) {
+        statGrid.innerHTML = '';
+        siteConfig.stats.forEach(s => {
+          const card = document.createElement('div');
+          card.className = 'stat-card';
+          const v = document.createElement('div');
+          v.className = 'stat-value';
+          v.textContent = s.value;
+          const l = document.createElement('div');
+          l.className = 'stat-label';
+          l.textContent = s.label;
+          card.appendChild(v);
+          card.appendChild(l);
+          statGrid.appendChild(card);
+        });
+      }
+    })();
+
+    // 演示动画：从 WordRoots 取前 5 个轮播
+    (function animateDemo(){
+      if (typeof WordRoots === 'undefined' || WordRoots.length === 0) return;
+      const N = (siteConfig && siteConfig.hero && siteConfig.hero.animation && siteConfig.hero.animation.demoCount) || 5;
+      const examples = WordRoots.slice(0, N);
+      let i = 0;
+      function update(){
+        const item = examples[i];
+        document.getElementById('demoWord').textContent = item.root;
+        document.getElementById('demoMeaning').textContent = item.meaning;
+        document.getElementById('demoOrigin').textContent = item.origin;
+        i = (i + 1) % examples.length;
+      }
+      update();
+      setInterval(update, 3500);
+    })();
+
+    // 注册 Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

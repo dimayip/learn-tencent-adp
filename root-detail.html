@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识点详情 — Tencent Cloud ADP 学习工坊</title>
+  <meta name="description" content="腾讯云智能体开发平台知识点详情页，含描述、应用案例与小测。">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#FBBF24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/minimal.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">
+        <span class="nav-brand-emoji">🤖</span>
+        <span>Tencent Cloud ADP 学习工坊</span>
+      </a>
+      <div class="nav-links">
+        <a href="learn.html" class="nav-link">学习</a>
+        <a href="flashcard.html" class="nav-link">闪卡</a>
+        <a href="roots.html" class="nav-link active">索引</a>
+        <a href="progress.html" class="nav-link">进度</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="learn-container">
+    <div class="learn-header">
+      <a href="roots.html" class="btn btn-ghost">← 返回索引</a>
+      <div style="display: flex; gap: var(--space-sm);">
+        <button class="btn btn-ghost" onclick="prevRoot()" id="prevBtn">← 上一个</button>
+        <button class="btn btn-primary" onclick="nextRoot()" id="nextBtn">下一个 →</button>
+      </div>
+    </div>
+
+    <article class="learn-content" id="detailArticle">
+      <div class="learn-title-row">
+        <h1 class="learn-title" id="rootName">加载中…</h1>
+        <span class="root-origin" id="rootOrigin"></span>
+        <span class="mastered-badge" id="masteredBadge" style="display:none;">✓ 已掌握</span>
+      </div>
+      <div class="learn-meaning" id="rootMeaning"></div>
+      <div class="learn-description" id="description"></div>
+
+      <div class="learn-section-title">📚 应用案例</div>
+      <div class="example-list" id="exampleList"></div>
+
+      <div class="quiz-section">
+        <div class="learn-section-title">🎯 知识小测</div>
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-result hidden" id="quizResult"></div>
+      </div>
+
+      <div class="learn-controls">
+        <label class="mastered-toggle">
+          <input type="checkbox" id="masteredCheckbox" onchange="toggleMastered()">
+          <span>标记为已掌握</span>
+        </label>
+        <div style="display: flex; gap: var(--space-sm);">
+          <a href="learn.html" class="btn btn-ghost">渐进学习</a>
+          <a href="flashcard.html" class="btn btn-ghost">闪卡练习</a>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/wordData.js"></script>
+  <script src="js/siteConfig.js"></script>
+  <script src="js/storage.js"></script>
+  <script>
+    let currentIndex = 0;
+    let quizAnswered = false;
+
+    function showToast(message) {
+      const t = document.getElementById('toast');
+      if (!t) return;
+      t.textContent = message;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function loadRootByIndex(index) {
+      if (index < 0 || index >= WordRoots.length) return;
+      currentIndex = index;
+      const root = WordRoots[index];
+
+      document.title = root.root + ' — Tencent Cloud ADP 学习工坊';
+      document.getElementById('rootName').textContent = root.root;
+      document.getElementById('rootOrigin').textContent = root.origin || '';
+      document.getElementById('rootMeaning').textContent = root.meaning || '';
+      document.getElementById('description').textContent = root.description || '';
+
+      // 应用案例
+      const list = document.getElementById('exampleList');
+      list.innerHTML = '';
+      (root.examples || []).forEach(ex => {
+        const item = document.createElement('div');
+        item.className = 'example-item';
+        const w = document.createElement('div');
+        w.className = 'example-word'; w.textContent = ex.word;
+        const m = document.createElement('div');
+        m.className = 'example-meaning'; m.textContent = ex.meaning;
+        const e = document.createElement('div');
+        e.className = 'example-explanation'; e.textContent = ex.explanation || '';
+        item.appendChild(w); item.appendChild(m); item.appendChild(e);
+        list.appendChild(item);
+      });
+
+      // Quiz
+      renderQuiz(root.quiz, root);
+
+      // 已掌握状态
+      const mastered = isMastered(root.id);
+      document.getElementById('masteredCheckbox').checked = mastered;
+      document.getElementById('masteredBadge').style.display = mastered ? 'inline-block' : 'none';
+
+      // 上下按钮可用性
+      document.getElementById('prevBtn').disabled = (index === 0);
+      document.getElementById('nextBtn').disabled = (index === WordRoots.length - 1);
+
+      // 记录浏览
+      markItemVisited(root.id);
+
+      // 同步 URL（不重新加载页面）
+      const url = new URL(window.location.href);
+      url.searchParams.set('id', root.id);
+      window.history.replaceState({}, '', url);
+    }
+
+    function renderQuiz(quiz, root) {
+      quizAnswered = false;
+      if (!quiz) return;
+      document.getElementById('quizQuestion').textContent = quiz.question;
+      const container = document.getElementById('quizOptions');
+      container.innerHTML = '';
+      const resultEl = document.getElementById('quizResult');
+      resultEl.className = 'quiz-result hidden';
+      resultEl.textContent = '';
+
+      quiz.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-option';
+        btn.textContent = String.fromCharCode(65 + index) + '. ' + option;
+        btn.onclick = () => checkAnswer(index, quiz, root);
+        container.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selectedIndex, quiz, root) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+
+      const isCorrect = selectedIndex === quiz.correctAnswer;
+      const options = document.querySelectorAll('#quizOptions .quiz-option');
+      options.forEach((btn, index) => {
+        btn.disabled = true;
+        if (index === quiz.correctAnswer) btn.classList.add('correct');
+        else if (index === selectedIndex && !isCorrect) btn.classList.add('wrong');
+      });
+
+      saveQuizResult(root.id, isCorrect, selectedIndex, quiz.correctAnswer);
+
+      setTimeout(() => {
+        const resultEl = document.getElementById('quizResult');
+        resultEl.className = 'quiz-result ' + (isCorrect ? 'correct' : 'incorrect');
+        resultEl.textContent = isCorrect
+          ? '✓ 回答正确！'
+          : '✗ 回答错误。正确答案是 ' + String.fromCharCode(65 + quiz.correctAnswer);
+
+        if (isCorrect && !isMastered(root.id)) {
+          saveMastered(root.id, true);
+          document.getElementById('masteredCheckbox').checked = true;
+          document.getElementById('masteredBadge').style.display = 'inline-block';
+          showToast('已自动标记为已掌握 ✓');
+        }
+      }, 200);
+    }
+
+    function toggleMastered() {
+      const checked = document.getElementById('masteredCheckbox').checked;
+      const root = WordRoots[currentIndex];
+      saveMastered(root.id, checked);
+      document.getElementById('masteredBadge').style.display = checked ? 'inline-block' : 'none';
+      showToast(checked ? '✓ 已标记为已掌握' : '✓ 已取消标记');
+    }
+
+    function nextRoot() {
+      if (currentIndex < WordRoots.length - 1) loadRootByIndex(currentIndex + 1);
+    }
+
+    function prevRoot() {
+      if (currentIndex > 0) loadRootByIndex(currentIndex - 1);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft') prevRoot();
+      if (e.key === 'ArrowRight') nextRoot();
+    });
+
+    // 初始加载：从 URL ?id= 读取
+    (function init() {
+      const params = new URLSearchParams(window.location.search);
+      const idParam = params.get('id');
+      let startIdx = 0;
+      if (idParam) {
+        const idNum = parseInt(idParam, 10);
+        const idx = WordRoots.findIndex(r => r.id === idNum);
+        if (idx >= 0) startIdx = idx;
+      }
+      loadRootByIndex(startIdx);
+    })();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

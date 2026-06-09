@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>渐进学习 — Tencent Cloud ADP 学习工坊</title>
+  <meta name="description" content="渐进式学习腾讯云智能体开发平台 140 个核心知识点，每个知识点配有详细说明、3 个例子和测试题。">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#FBBF24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/minimal.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">
+        <span class="nav-brand-emoji">🤖</span>
+        <span>Tencent Cloud ADP 学习工坊</span>
+      </a>
+      <div class="nav-links">
+        <a href="learn.html" class="nav-link active">学习</a>
+        <a href="flashcard.html" class="nav-link">闪卡</a>
+        <a href="roots.html" class="nav-link">索引</a>
+        <a href="progress.html" class="nav-link">进度</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="learn-container">
+    <div class="learn-header">
+      <div class="learn-progress">
+        <div class="learn-progress-text">
+          <span id="progressNum">第 1 / 140 个</span>　·　
+          已掌握 <span id="masteredNum">0</span>
+        </div>
+        <div class="learn-progress-bar"><div class="fill" id="progressFill"></div></div>
+      </div>
+      <div style="display: flex; gap: var(--space-sm);">
+        <button class="btn btn-ghost" onclick="prevRoot()">← 上一个</button>
+        <button class="btn btn-primary" onclick="nextRoot()">下一个 →</button>
+      </div>
+    </div>
+
+    <article class="learn-content">
+      <div class="learn-title-row">
+        <h1 class="learn-title" id="rootName">—</h1>
+        <span class="root-origin" id="rootOrigin">—</span>
+        <span class="mastered-badge" id="masteredBadge" style="display:none;">✓ 已掌握</span>
+      </div>
+      <div class="learn-meaning" id="rootMeaning">—</div>
+      <div class="learn-description" id="description">—</div>
+
+      <div class="learn-section-title">📚 应用案例</div>
+      <div class="example-list" id="exampleList"></div>
+
+      <div class="quiz-section">
+        <div class="learn-section-title">🎯 知识小测</div>
+        <div class="quiz-question" id="quizQuestion">—</div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-result hidden" id="quizResult"></div>
+      </div>
+
+      <div class="learn-controls">
+        <label class="mastered-toggle">
+          <input type="checkbox" id="masteredCheckbox" onchange="toggleMastered()">
+          <span>标记为已掌握</span>
+        </label>
+        <div style="display: flex; gap: var(--space-sm);">
+          <button class="btn btn-ghost" onclick="prevRoot()">← 上一个</button>
+          <button class="btn btn-primary" onclick="nextRoot()">下一个 →</button>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/wordData.js"></script>
+  <script src="js/siteConfig.js"></script>
+  <script src="js/storage.js"></script>
+  <script>
+    let currentIndex = 0;
+    let quizAnswered = false;
+
+    function showToast(message) {
+      const t = document.getElementById('toast');
+      if (!t) return;
+      t.textContent = message;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function loadRoot(index) {
+      if (index < 0 || index >= WordRoots.length) return;
+      currentIndex = index;
+      const root = WordRoots[index];
+
+      document.getElementById('rootName').textContent = root.root;
+      document.getElementById('rootMeaning').textContent = root.meaning;
+      document.getElementById('rootOrigin').textContent = root.origin;
+      document.getElementById('description').textContent = root.description;
+
+      // 例子
+      const list = document.getElementById('exampleList');
+      list.innerHTML = '';
+      (root.examples || []).forEach(ex => {
+        const item = document.createElement('div');
+        item.className = 'example-item';
+        const w = document.createElement('div');
+        w.className = 'example-word'; w.textContent = ex.word;
+        const m = document.createElement('div');
+        m.className = 'example-meaning'; m.textContent = ex.meaning;
+        const e = document.createElement('div');
+        e.className = 'example-explanation'; e.textContent = ex.explanation || '';
+        item.appendChild(w); item.appendChild(m); item.appendChild(e);
+        list.appendChild(item);
+      });
+
+      // Quiz
+      renderQuiz(root.quiz, root);
+
+      // 已掌握状态
+      const mastered = isMastered(root.id);
+      document.getElementById('masteredCheckbox').checked = mastered;
+      document.getElementById('masteredBadge').style.display = mastered ? 'inline-block' : 'none';
+
+      // 进度
+      document.getElementById('progressNum').textContent = '第 ' + (index + 1) + ' / ' + WordRoots.length + ' 个';
+      document.getElementById('masteredNum').textContent = getMasteredCount();
+      document.getElementById('progressFill').style.width = ((index + 1) / WordRoots.length * 100) + '%';
+
+      // 记录浏览
+      markItemVisited(root.id);
+      // 保存当前位置
+      saveProgress({ currentItem: index + 1 });
+    }
+
+    function renderQuiz(quiz, root) {
+      quizAnswered = false;
+      if (!quiz) return;
+      document.getElementById('quizQuestion').textContent = quiz.question;
+      const container = document.getElementById('quizOptions');
+      container.innerHTML = '';
+      const resultEl = document.getElementById('quizResult');
+      resultEl.className = 'quiz-result hidden';
+      resultEl.textContent = '';
+
+      quiz.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-option';
+        btn.textContent = String.fromCharCode(65 + index) + '. ' + option;
+        btn.onclick = () => checkAnswer(index, quiz, root);
+        container.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selectedIndex, quiz, root) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+
+      const isCorrect = selectedIndex === quiz.correctAnswer;
+      const options = document.querySelectorAll('#quizOptions .quiz-option');
+      options.forEach((btn, index) => {
+        btn.disabled = true;
+        if (index === quiz.correctAnswer) btn.classList.add('correct');
+        else if (index === selectedIndex && !isCorrect) btn.classList.add('wrong');
+      });
+
+      saveQuizResult(root.id, isCorrect, selectedIndex, quiz.correctAnswer);
+
+      setTimeout(() => {
+        const resultEl = document.getElementById('quizResult');
+        resultEl.className = 'quiz-result ' + (isCorrect ? 'correct' : 'incorrect');
+        resultEl.textContent = isCorrect
+          ? '✓ 回答正确！'
+          : '✗ 回答错误。正确答案是 ' + String.fromCharCode(65 + quiz.correctAnswer);
+
+        if (isCorrect && !isMastered(root.id)) {
+          saveMastered(root.id, true);
+          document.getElementById('masteredCheckbox').checked = true;
+          document.getElementById('masteredBadge').style.display = 'inline-block';
+          document.getElementById('masteredNum').textContent = getMasteredCount();
+          showToast('已自动标记为已掌握 ✓');
+        }
+      }, 200);
+    }
+
+    function nextRoot() {
+      if (currentIndex < WordRoots.length - 1) loadRoot(currentIndex + 1);
+    }
+    function prevRoot() {
+      if (currentIndex > 0) loadRoot(currentIndex - 1);
+    }
+
+    function toggleMastered() {
+      const checked = document.getElementById('masteredCheckbox').checked;
+      const root = WordRoots[currentIndex];
+      saveMastered(root.id, checked);
+      document.getElementById('masteredBadge').style.display = checked ? 'inline-block' : 'none';
+      document.getElementById('masteredNum').textContent = getMasteredCount();
+      showToast(checked ? '✓ 已标记为已掌握' : '✓ 已取消标记');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft') prevRoot();
+      if (e.key === 'ArrowRight') nextRoot();
+    });
+
+    // 初始加载
+    (function init(){
+      const params = new URLSearchParams(window.location.search);
+      const idParam = params.get('id');
+      if (idParam) {
+        const idNum = parseInt(idParam);
+        const idx = WordRoots.findIndex(r => r.id === idNum);
+        if (idx >= 0) { loadRoot(idx); return; }
+      }
+      const progress = loadProgress();
+      const startIdx = (progress.currentItem - 1 >= 0 && progress.currentItem - 1 < WordRoots.length) ? progress.currentItem - 1 : 0;
+      loadRoot(startIdx);
+    })();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

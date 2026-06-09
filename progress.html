@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学习进度 — Tencent Cloud ADP 学习工坊</title>
+  <meta name="description" content="追踪你在腾讯云智能体开发平台学习工坊的学习进度，掌握情况、测试正确率、分类统计。">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#FBBF24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/minimal.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">
+        <span class="nav-brand-emoji">🤖</span>
+        <span>Tencent Cloud ADP 学习工坊</span>
+      </a>
+      <div class="nav-links">
+        <a href="learn.html" class="nav-link">学习</a>
+        <a href="flashcard.html" class="nav-link">闪卡</a>
+        <a href="roots.html" class="nav-link">索引</a>
+        <a href="progress.html" class="nav-link active">进度</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <h1>学习进度</h1>
+      <p>追踪你的 Tencent Cloud ADP 学习情况</p>
+    </div>
+
+    <div class="container">
+      <div class="progress-overview" id="overviewStats"></div>
+      <div class="progress-bar-large"><div class="fill" id="progressBarLarge"></div></div>
+
+      <h3 class="section-title">📌 学习建议</h3>
+      <div id="recommendations"></div>
+
+      <h3 class="section-title">🗂 分类掌握情况</h3>
+      <div class="progress-overview" id="categoryStats"></div>
+
+      <h3 class="section-title">✅ 已掌握的知识点 (<span id="masteredCount">0</span>)</h3>
+      <div class="mastered-list" id="masteredList"></div>
+
+      <h3 class="section-title">🔁 建议复习 (<span id="reviewCount">0</span>)</h3>
+      <p style="color: var(--color-text-tertiary); font-size: 0.9rem; margin-bottom: 12px;">已掌握但测试正确率低于 70% 的知识点</p>
+      <div class="mastered-list" id="reviewList"></div>
+
+      <h3 class="section-title">⚙️ 数据管理</h3>
+      <div class="data-actions">
+        <button class="btn btn-secondary" onclick="exportProgress()">导出学习数据</button>
+        <button class="btn btn-secondary" onclick="importProgress()">导入学习数据</button>
+        <button class="btn btn-ghost" onclick="clearProgress()" style="color: var(--color-error);">清除所有数据</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none;" onchange="handleImport(event)">
+    </div>
+
+    <div style="height: 80px;"></div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/wordData.js"></script>
+  <script src="js/storage.js"></script>
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function makeStat(value, label) {
+      const div = document.createElement('div');
+      div.className = 'progress-stat';
+      const v = document.createElement('div'); v.className = 'stat-value'; v.textContent = value;
+      const l = document.createElement('div'); l.className = 'stat-label'; l.textContent = label;
+      div.appendChild(v); div.appendChild(l);
+      return div;
+    }
+
+    function renderOverviewStats() {
+      const stats = getOverallStats();
+      const quizStats = getQuizStats();
+      const c = document.getElementById('overviewStats');
+      c.innerHTML = '';
+      c.appendChild(makeStat(stats.mastered, '已掌握知识点'));
+      c.appendChild(makeStat(Math.round(stats.masteredPercentage) + '%', '掌握率'));
+      c.appendChild(makeStat(stats.visited, '已学习数'));
+      c.appendChild(makeStat(Math.round(quizStats.accuracy) + '%', '测试正确率'));
+      const bar = document.getElementById('progressBarLarge');
+      bar.style.width = Math.round(stats.masteredPercentage) + '%';
+    }
+
+    function renderRecommendations() {
+      const recs = getStudyRecommendations();
+      const c = document.getElementById('recommendations');
+      c.innerHTML = '';
+      if (recs.length === 0) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const p = document.createElement('p');
+        p.textContent = '🎉 学习状态良好，继续保持！';
+        card.appendChild(p);
+        c.appendChild(card);
+        return;
+      }
+      recs.forEach(rec => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.marginBottom = '12px';
+        const t = document.createElement('h4'); t.textContent = rec.title;
+        const p = document.createElement('p'); p.textContent = rec.description;
+        p.style.color = 'var(--color-text-secondary)'; p.style.marginTop = '6px';
+        card.appendChild(t); card.appendChild(p);
+        c.appendChild(card);
+      });
+    }
+
+    function renderCategoryStats() {
+      const masteredItems = loadMasteredItems();
+      const categories = {};
+      WordRoots.forEach(item => {
+        if (!categories[item.origin]) categories[item.origin] = { total: 0, mastered: 0 };
+        categories[item.origin].total++;
+        if (masteredItems.indexOf(item.id) >= 0) categories[item.origin].mastered++;
+      });
+      const c = document.getElementById('categoryStats');
+      c.innerHTML = '';
+      Object.keys(categories).forEach(origin => {
+        const { total, mastered } = categories[origin];
+        const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+        c.appendChild(makeStat(mastered + '/' + total, origin + ' (' + pct + '%)'));
+      });
+    }
+
+    function makeMasteredItem(item) {
+      const div = document.createElement('div');
+      div.className = 'mastered-item';
+      div.onclick = () => { window.location.href = 'root-detail.html?id=' + item.id; };
+      const n = document.createElement('div'); n.className = 'mastered-item-name'; n.textContent = item.root;
+      const m = document.createElement('div'); m.className = 'mastered-item-meaning'; m.textContent = item.meaning;
+      div.appendChild(n); div.appendChild(m);
+      return div;
+    }
+
+    function renderMasteredList() {
+      const masteredItems = loadMasteredItems();
+      const c = document.getElementById('masteredList');
+      c.innerHTML = '';
+      document.getElementById('masteredCount').textContent = masteredItems.length;
+      if (masteredItems.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-hint';
+        empty.style.gridColumn = '1 / -1';
+        empty.textContent = '还没有已掌握的知识点，去学习页或闪卡开始吧！';
+        c.appendChild(empty);
+        return;
+      }
+      WordRoots.filter(r => masteredItems.indexOf(r.id) >= 0).forEach(item => {
+        c.appendChild(makeMasteredItem(item));
+      });
+    }
+
+    function renderReviewItems() {
+      const masteredItems = loadMasteredItems();
+      const quizResults = loadQuizResults();
+      const reviewItems = WordRoots.filter(item => {
+        if (masteredItems.indexOf(item.id) < 0) return false;
+        const itemResults = quizResults[item.id] || [];
+        if (itemResults.length === 0) return false;
+        const correct = itemResults.filter(r => r.isCorrect).length;
+        return (correct / itemResults.length) * 100 < 70;
+      });
+      const c = document.getElementById('reviewList');
+      c.innerHTML = '';
+      document.getElementById('reviewCount').textContent = reviewItems.length;
+      if (reviewItems.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-hint';
+        empty.style.gridColumn = '1 / -1';
+        empty.textContent = '暂无需要复习的知识点';
+        c.appendChild(empty);
+        return;
+      }
+      reviewItems.forEach(item => c.appendChild(makeMasteredItem(item)));
+    }
+
+    function exportProgress() {
+      const data = exportData();
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'tcadp-progress-' + new Date().toISOString().split('T')[0] + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('✓ 学习数据已导出');
+    }
+
+    function importProgress() { document.getElementById('importFile').click(); }
+    function handleImport(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const success = importData(e.target.result);
+        if (success) {
+          showToast('✓ 导入成功，正在刷新…');
+          setTimeout(() => window.location.reload(), 1200);
+        } else {
+          showToast('✗ 导入失败：数据格式不正确');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function clearProgress() {
+      if (confirm('确定要清除所有学习数据吗？此操作无法撤销。')) {
+        clearAllData();
+      }
+    }
+
+    function initializePage() {
+      renderOverviewStats();
+      renderRecommendations();
+      renderCategoryStats();
+      renderMasteredList();
+      renderReviewItems();
+    }
+
+    initializePage();
+    window.addEventListener('masteredChanged', initializePage);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
