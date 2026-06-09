@@ -2,20 +2,21 @@
   "name": "Tencent Cloud ADP 学习工坊",
   "short_name": "ADP 学习",
   "description": "腾讯云智能体开发平台 140 个核心知识点学习网站",
-  "start_url": "/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#FFFFFF",
   "theme_color": "#FBBF24",
   "lang": "zh-CN",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

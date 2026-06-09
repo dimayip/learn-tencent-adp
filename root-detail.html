@@ -7,7 +7,7 @@
   <meta name="description" content="腾讯云智能体开发平台知识点详情页，含描述、应用案例与小测。">
   <meta name="robots" content="index, follow">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FBBF24">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,7 @@
 <body>
   <nav class="nav">
     <div class="nav-container">
-      <a href="/" class="nav-brand">
+      <a href="index.html" class="nav-brand">
         <span class="nav-brand-emoji">🤖</span>
         <span>Tencent Cloud ADP 学习工坊</span>
       </a>
@@ -221,7 +221,7 @@
     })();
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     }
   </script>
 </body>

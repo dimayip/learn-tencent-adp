@@ -1,20 +1,21 @@
 // Service Worker - 腾讯云 ADP 学习工坊
-const CACHE_NAME = 'tcadp-learn-v1';
+const CACHE_NAME = 'tcadp-learn-v2';
+// 用相对路径，使其在根路径与子路径（GitHub Pages）下均可工作
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/learn.html',
-  '/flashcard.html',
-  '/roots.html',
-  '/progress.html',
-  '/root-detail.html',
-  '/css/minimal.css',
-  '/js/wordData.js',
-  '/js/siteConfig.js',
-  '/js/storage.js',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
+  './',
+  './index.html',
+  './learn.html',
+  './flashcard.html',
+  './roots.html',
+  './progress.html',
+  './root-detail.html',
+  './css/minimal.css',
+  './js/wordData.js',
+  './js/siteConfig.js',
+  './js/storage.js',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {

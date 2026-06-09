@@ -21,12 +21,12 @@
   <meta name="twitter:description" content="腾讯云智能体开发平台 140 个核心知识点学习网站">
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FBBF24">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="ADP 学习">
-  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,7 +36,7 @@
 <body>
   <nav class="nav">
     <div class="nav-container">
-      <a href="/" class="nav-brand">
+      <a href="index.html" class="nav-brand">
         <span class="nav-brand-emoji">🤖</span>
         <span>Tencent Cloud ADP 学习工坊</span>
       </a>
@@ -146,7 +146,7 @@
     // 注册 Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
+        navigator.serviceWorker.register('sw.js').catch(() => {});
       });
     }
   </script>
